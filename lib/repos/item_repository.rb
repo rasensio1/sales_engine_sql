@@ -7,12 +7,13 @@ require_relative './repository'
 class ItemRepository < Repository
 
   attr_accessor :cached_paid_invoice_items
+  attr_reader :loaded_csvs
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'items.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
-    loaded_csvs = Loader.new.load_csv(path)
+    @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
   end
 
@@ -26,6 +27,18 @@ class ItemRepository < Repository
                                         description string, unit_price int,
                                         merchant_id int, created_at time,
                                         updated_at time);"
+  end
+
+  def populate_table
+      loaded_csvs.each do |row|
+        sql_db.execute "INSERT INTO items
+                        (id, name, description, unit_price, merchant_id,
+                                                  created_at, updated_at)
+                         VALUES (#{row[:id]}, '#{row[:name]}',
+                         '#{row[:description]}', #{row[:unit_price]},
+                         #{row[:merchant_id]}, #{row[:created_at].to_date},
+                         #{row[:updated_at].to_date});"
+      end
   end
 
   def paid_invoice_items(item)

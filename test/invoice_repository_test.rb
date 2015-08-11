@@ -81,5 +81,30 @@ class InvoiceRepositoryTest < Minitest::Test
     assert_equal invoice.transactions.count, prior_transaction_count.next
   end
 
+  def test_it_creates_and_can_populate_a_table
+    engine = SalesEngine.new
+    engine.startup
+    repo = engine.invoice_repository
+    db = engine.sql_db
+    repo.create_table
+    db.execute "INSERT INTO invoices (id, customer_id, merchant_id) VALUES (1, 2, 3);"
+    result = db.execute "SELECT * FROM invoices;"
+
+    assert_equal 3, result.first['merchant_id']
+  end
+
+  def test_it_loads_the_data_into_the_sql_table
+    engine = SalesEngine.new
+    engine.startup
+    repo = engine.invoice_repository
+    db = engine.sql_db
+    repo.create_table
+    repo.populate_table
+    result = db.execute "SELECT * FROM invoices;"
+    expected = 88888890
+
+    assert_equal 33, result.size
+    assert_equal expected, result.last['id']
+  end
 
 end

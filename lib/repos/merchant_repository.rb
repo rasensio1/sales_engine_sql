@@ -7,12 +7,15 @@ class MerchantRepository < Repository
   attr_accessor :all_paid_invoices, :all_unpaid_invoices,
     :cached_dates_by_revenue, :cached_invoices, :cached_items,
     :cached_dates_with_sales
+  attr_reader :loaded_csvs
+
+  SQLTable = 'merchants'
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'merchants.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
-    loaded_csvs = Loader.new.load_csv(path)
+    @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
   end
 
@@ -24,6 +27,23 @@ class MerchantRepository < Repository
     sql_db.execute "create table merchants (id INT, name string,
                                         created_at time, updated_at time);"
   end
+
+  def populate_table
+      loaded_csvs.each do |row|
+        sql_db.execute "INSERT INTO merchants
+                        (id, name, created_at, updated_at)
+                         VALUES (#{row[:id]}, '#{row[:name]}',
+                         #{row[:created_at].to_date},
+                         #{row[:updated_at].to_date});"
+      end
+  end
+
+  # def all
+  #   all_data = sql_db.execute "SELECT * FROM #{SQLTable}"
+  #   all_data.map do |row|
+  #     Merchant.new()
+  #   end
+  # end
 
   def most_revenue(x)
     all.max_by(x) {|merchant| merchant.revenue}

@@ -30,8 +30,10 @@ class CustomerRepository < Repository
       loaded_csvs.each do |row|
         sql_db.execute "INSERT INTO customers
                         (id, first_name, last_name, created_at, updated_at)
-                         VALUES (#{row[:id]}, '#{row[:first_name]}',
-                         '#{row[:last_name]}', #{row[:created_at].to_date},
+                         VALUES (#{row[:id]},
+                         '#{row[:first_name]}',
+                         '#{row[:last_name]}',
+                         #{row[:created_at].to_date},
                          #{row[:updated_at].to_date});"
       end
   end

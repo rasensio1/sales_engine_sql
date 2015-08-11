@@ -6,12 +6,13 @@ require_relative './repository'
 class InvoiceRepository < Repository
 
   attr_accessor :cached_paid_invoices, :cached_unpaid_invoices
+  attr_reader :loaded_csvs
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'invoices.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
-    loaded_csvs = Loader.new.load_csv(path)
+    @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
   end
 
@@ -23,6 +24,17 @@ class InvoiceRepository < Repository
     sql_db.execute "create table invoices (id INT, customer_id int,
                                       merchant_id int, status string,
                                        created_at time, updated_at time);"
+  end
+
+  def populate_table
+      loaded_csvs.each do |row|
+        sql_db.execute "INSERT INTO invoices
+                        (id, customer_id, merchant_id, status, created_at, updated_at)
+                         VALUES (#{row[:id]}, #{row[:customer_id]},
+                         #{row[:merchant_id]}, '#{row[:status]}',
+                         #{row[:created_at].to_date},
+                         #{row[:updated_at].to_date});"
+      end
   end
 
   def clean_status(match)

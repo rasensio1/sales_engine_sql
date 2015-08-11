@@ -3,7 +3,7 @@ require_relative '../lib/repos/item_repository'
 require_relative '../lib/sales_engine'
 
 class ItemRepositoryTest < Minitest::Test
-  
+
   def setup
     @item_repository = ItemRepository.new(:path => './fixtures/')
     @se = SalesEngine.new
@@ -25,7 +25,7 @@ class ItemRepositoryTest < Minitest::Test
 
     expected = BigDecimal.new("75107") / 100
     result = item.unit_price
-    
+
     assert_equal expected,  result
   end
 
@@ -64,5 +64,32 @@ class ItemRepositoryTest < Minitest::Test
 
     assert_equal expected, actual
   end
+
+
+    def test_it_creates_and_can_populate_a_table
+      engine = SalesEngine.new
+      engine.startup
+      repo = engine.item_repository
+      db = engine.sql_db
+      repo.create_table
+      db.execute "INSERT INTO items (id, name, description) VALUES (1, 'hot dog', 'sort of pork');"
+      result = db.execute "SELECT * FROM items;"
+
+      assert_equal 'sort of pork', result.first['description']
+    end
+
+    def test_it_loads_the_data_into_the_sql_table
+      engine = SalesEngine.new
+      engine.startup
+      repo = engine.item_repository
+      db = engine.sql_db
+      repo.create_table
+      repo.populate_table
+      result = db.execute "SELECT * FROM items;"
+      expected = 2174
+
+      assert_equal 662, result.size
+      assert_equal expected, result.last['id']
+    end
 
 end

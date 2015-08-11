@@ -7,7 +7,7 @@ class MerchantRepositoryTest < Minitest::Test
     @merchant_repository = MerchantRepository.new(:path => './fixtures/')
     @se = SalesEngine.new
     @se.startup
-  end 
+  end
 
   def test_make_sure_we_can_instantiate
     assert @merchant_repository.class == MerchantRepository
@@ -17,7 +17,7 @@ class MerchantRepositoryTest < Minitest::Test
 
     hash = {:name=>"Willms and Sons", :created_at=>"2012-03-27 14:53:59 UTC", :updated_at=>"2012-03-27 14:53:59 UTC"}
     merchant = @merchant_repository.create_record(hash)
-    
+
     expected = "Willms and Sons"
     result = merchant.name
 
@@ -73,7 +73,29 @@ class MerchantRepositoryTest < Minitest::Test
     assert_equal expected, actual
   end
 
-  def test_it_knows_the_customer_with_the_most_successful_transactions
-    
+  def test_it_creates_and_can_populate_a_table
+    engine = SalesEngine.new
+    engine.startup
+    repo = engine.merchant_repository
+    db = engine.sql_db
+    repo.create_table
+    db.execute "INSERT INTO merchants(id, name) VALUES (1, 'Johnny');"
+    result = db.execute "SELECT * FROM merchants;"
+
+    assert_equal 'Johnny', result.first['name']
   end
+
+  def test_it_loads_the_data_into_the_sql_table
+    engine = SalesEngine.new
+    engine.startup
+    repo = engine.merchant_repository
+    db = engine.sql_db
+    repo.create_table
+    repo.populate_table
+    result = db.execute "SELECT * FROM merchants;"
+
+    assert_equal 28, result.size
+    assert_equal 'Fahey-Stiedemann', result.last['name']
+  end
+
 end

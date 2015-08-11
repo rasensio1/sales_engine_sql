@@ -2,16 +2,18 @@ require 'pry'
 require_relative '../loader'
 require_relative '../objects/transaction'
 require_relative './repository'
+require 'date'
 
 class TransactionRepository < Repository
 
   attr_accessor :cached_invoices
+  attr_reader :loaded_csvs
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'transactions.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
-    loaded_csvs = Loader.new.load_csv(path)
+    @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
   end
 
@@ -20,9 +22,28 @@ class TransactionRepository < Repository
   end
 
   def create_table
-    sql_db.execute "create table transactions (id INT, invoice_id int, credit_card_number int,
-                                        credit_card_expiration_date int,
-                                        result string, created_at time, updated_at time);"  #add values to table
+    sql_db.execute "create table transactions
+                    (id INT, invoice_id int, credit_card_number int,
+                    credit_card_expiration_date string,
+                    result string, created_at date, updated_at date);"  #add values to table
+  end
+
+  def populate_table
+      loaded_csvs.each do |row|
+        sql_db.execute "INSERT INTO transactions (id, invoice_id,
+                        credit_card_number, result, created_at, updated_at)
+                        VALUES (#{row[:id]}, #{row[:invoice_id]},
+                        #{row[:credit_card_number]}, '#{row[:result]}',
+                        #{row[:created_at].to_date},
+                        #{row[:updated_at].to_date});"
+      end
+  end
+
+  def table
+    data = sql.db.execute "select * from transactions"
+    data.map do |row|
+      Transaction.new(row)
+    end
   end
 
   def get_invoice_for(transaction)

@@ -66,7 +66,7 @@ class CustomerRepositoryTest < Minitest::Test
     db.execute "INSERT INTO customers(id, first_name, last_name) VALUES (1, 'Johnny', 'Buddy');"
     result = db.execute "SELECT * FROM customers;"
 
-    assert_equal [[1, 'Johnny', 'Buddy', nil, nil]], result
+    assert_equal 'Johnny', result.first['first_name']
   end
 
   def test_it_loads_the_data_into_the_sql_table

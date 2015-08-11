@@ -38,7 +38,7 @@ class InvoiceItemRepositoryTest < Minitest::Test
     db.execute "INSERT INTO invoice_items (id, item_id) VALUES (1, 2);"
     result = db.execute "SELECT * FROM invoice_items;"
 
-    assert_equal [[1, 2, nil, nil, nil, nil, nil]], result
+    assert_equal 2, result.first['item_id']
   end
 
   def test_it_loads_the_data_into_the_sql_table
