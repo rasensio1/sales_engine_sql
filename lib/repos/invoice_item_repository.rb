@@ -4,13 +4,15 @@ require_relative '../objects/invoice_item.rb'
 require_relative './repository'
 
 class InvoiceItemRepository < Repository
+  attr_reader :loaded_csvs
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'invoice_items.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
-    loaded_csvs = Loader.new.load_csv(path)
+    @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
+    @sql_db = args.fetch(:sql_db, nil)
   end
 
   def create_record(record)
@@ -23,6 +25,17 @@ class InvoiceItemRepository < Repository
                                         invoice_id int, quantity int,
                                         unit_price int, created_at time,
                                         updated_at time);"
+  end
+
+  def populate_table
+      loaded_csvs.each do |row|
+        sql_db.execute "INSERT INTO invoice_items
+                        (id, item_id, invoice_id, quantity, unit_price, created_at, updated_at)
+                         VALUES (#{row[:id]}, '#{row[:item_id]}',
+                         '#{row[:invoice_id]}', '#{row[:quantity]}',
+                         '#{row[:unit_price]}', #{row[:created_at].to_date},
+                         #{row[:updated_at].to_date});"
+      end
   end
 
   def paid_invoice_items

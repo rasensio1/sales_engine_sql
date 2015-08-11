@@ -6,7 +6,7 @@ require_relative './repository'
 class CustomerRepository < Repository
 
   attr_accessor :cached_invoices
-  attr_reader :loaded_csvs, :sql_db
+  attr_reader :loaded_csvs
 
   def initialize(args)
     super
@@ -14,7 +14,6 @@ class CustomerRepository < Repository
     path = args.fetch(:path, './data/fixtures/') + filename
     @loaded_csvs = Loader.new.load_csv(path)
     @records = build_from(loaded_csvs)
-    @sql_db = args.fetch(:sql_db, nil)
   end
 
   def create_record(record)

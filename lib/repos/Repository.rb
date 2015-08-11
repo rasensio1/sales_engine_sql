@@ -3,13 +3,14 @@ require_relative '../modules/find_by_x'
 
 class Repository
   attr_accessor :records
-  attr_reader :engine
+  attr_reader :engine, :sql_db
 
   include Find
   include FindByX
 
   def initialize(args)
     @engine = args.fetch(:engine, nil)
+    @sql_db = args.fetch(:sql_db, nil)
   end
 
   def build_from(loaded_csvs)
