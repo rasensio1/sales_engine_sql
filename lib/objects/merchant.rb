@@ -8,12 +8,12 @@ class Merchant
   :cached_invoices, :cached_paid_invoices, :cached_unpaid_invoices
   attr_reader :id, :repository
 
-  def initialize(record)
-    @id          = record[:id]
-    @name        = record[:name]
-    @created_at  = record[:created_at]
-    @updated_at  = record[:updated_at]
-    @repository  = record.fetch(:repository, nil)
+  def initialize(record, repository)
+    @id          = record['id']
+    @name        = record['name']
+    @created_at  = record['created_at']
+    @updated_at  = record['updated_at']
+    @repository  = repository
   end
 
   def items
@@ -49,6 +49,7 @@ class Merchant
       paid_invoices
     else
       paid_invoices.select do |invoice|
+        binding.pry
         invoice.created_at.to_date == date.to_date
       end
     end
@@ -70,7 +71,7 @@ class Merchant
 
   def revenue(dates = "all")
     if dates == "all"
-      revenue_all
+      BigDecimal(revenue_all)/100
     else
       dates = dates..dates if !(dates.is_a?(Range))
       revenue_range(dates)

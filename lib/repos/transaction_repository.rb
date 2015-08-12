@@ -7,18 +7,22 @@ require 'date'
 class TransactionRepository < Repository
 
   attr_accessor :cached_invoices
-  attr_reader :loaded_csvs
+  attr_reader :loaded_csvs, :my_object, :my_table, :sql_db
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'transactions.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
     @loaded_csvs = Loader.new.load_csv(path)
-    @records = build_from(loaded_csvs)
+    @my_object = Transaction
+    @my_table = 'transactions'
+    @sql_db = args.fetch(:sql_db, nil)
+    @records = table_make
+
   end
 
   def create_record(record)
-    Transaction.new(record)
+    Transaction.new(record, self)
   end
 
   def create_table
@@ -37,13 +41,6 @@ class TransactionRepository < Repository
                         #{row[:created_at].to_date},
                         #{row[:updated_at].to_date});"
       end
-  end
-
-  def table
-    data = sql.db.execute "select * from transactions"
-    data.map do |row|
-      Transaction.new(row)
-    end
   end
 
   def get_invoice_for(transaction)

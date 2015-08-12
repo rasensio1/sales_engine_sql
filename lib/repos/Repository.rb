@@ -22,6 +22,38 @@ class Repository
     records
   end
 
+  def table_make
+    create_table
+    populate_table
+    data = sql_db.execute "select * from #{my_table}"
+    make_objects(data)
+  end
+
+  def make_objects(criteria)
+    criteria.map do |row|
+      my_object.new(row, self)
+    end
+  end
+
+  def all
+    data = sql_db.execute "select * from #{my_table}"
+    make_objects(data)
+  end
+
+  def random
+    all.sample
+  end
+
+
+  def find_all_by(x, match)
+      criteria = sql_db.execute "select * from #{my_table} where #{x} = '#{match}';"
+      make_objects(criteria)
+  end
+
+  def find_by(x, match)
+      criteria = find_all_by(x, match).first
+  end
+
   def get(what, source_key_value, remote_key_name)
     foreign_repo = repo_map[what.to_sym]
     engine.send(foreign_repo).find_all_by(remote_key_name, source_key_value)

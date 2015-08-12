@@ -1,4 +1,5 @@
 require_relative '../modules/record_like.rb'
+require_relative 'transaction'
 
 class Invoice
   include RecordLike
@@ -6,20 +7,24 @@ class Invoice
   attr_accessor :customer_id, :merchant_id, :status , :created_at,
     :updated_at, :cached_transactions, :cached_invoice_items, :cached_items,
     :cached_customer, :cached_merchant
-  attr_reader :id, :repository
+  attr_reader :id, :repository, :db
 
-  def initialize(record)
-    @id = record[:id]
-    @customer_id = record[:customer_id]
-    @merchant_id = record[:merchant_id]
-    @status      = record[:status]
-    @created_at  = record[:created_at]
-    @updated_at  = record[:updated_at]
-    @repository  = record.fetch(:repository, nil)
+  def initialize(record, repository)
+    @id = record['id']
+    @customer_id = record['customer_id']
+    @merchant_id = record['merchant_id']
+    @status      = record['status']
+    @created_at  = record['created_at']
+    @updated_at  = record['updated_at']
+    @repository  = repository
+    @db          = repository.sql_db
   end
 
   def transactions
-    cached_transactions ||= repository.get(:transactions, id, :invoice_id)
+    criteria = db.execute "select * from transactions where invoice_id = #{id};"
+    criteria.map do |row|
+      Transaction.new(row, @repository.engine.transaction_repository)
+    end
   end
 
   def invoice_items

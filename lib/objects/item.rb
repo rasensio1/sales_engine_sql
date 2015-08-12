@@ -1,4 +1,5 @@
 require_relative '../modules/record_like.rb'
+require_relative './invoice_item'
 require 'date'
 
 class Item
@@ -8,21 +9,25 @@ class Item
     :created_at, :updated_at, :cached_invoices, :cached_paid_invoices,
     :cached_unpaid_invoices, :cached_invoice_items, :cached_merchant,
     :cached_paid_invoice_items
-  attr_reader :id, :repository
+  attr_reader :id, :repository, :db
 
-  def initialize(record)
-    @id          = record[:id]
-    @name        = record[:name]
-    @description = record[:description]
-    @unit_price  = record[:unit_price]
-    @merchant_id = record[:merchant_id]
-    @created_at  = record[:created_at]
-    @updated_at  = record[:updated_at]
-    @repository  = record.fetch(:repository, nil)
+  def initialize(record, repository)
+    @id          = record['id']
+    @name        = record['name']
+    @description = record['description']
+    @unit_price  = record['unit_price']
+    @merchant_id = record['merchant_id']
+    @created_at  = record['created_at']
+    @updated_at  = record['updated_at']
+    @repository  = repository
+    @db          = repository.sql_db
   end
 
   def invoice_items
-    cached_invoice_items ||= repository.get(:invoice_items, id, :item_id)
+    criteria = db.execute "select * from invoice_items where item_id = #{id}"
+    criteria.map do |row|
+      InvoiceItem.new(row)
+    end
   end
 
   def paid_invoice_items

@@ -93,7 +93,6 @@ class MerchantRepositoryTest < Minitest::Test
     repo.create_table
     repo.populate_table
     result = db.execute "SELECT * FROM merchants;"
-
     assert_equal 28, result.size
     assert_equal 'Fahey-Stiedemann', result.last['name']
   end

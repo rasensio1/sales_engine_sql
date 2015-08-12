@@ -6,18 +6,22 @@ require_relative './repository'
 class InvoiceRepository < Repository
 
   attr_accessor :cached_paid_invoices, :cached_unpaid_invoices
-  attr_reader :loaded_csvs
+  attr_reader :loaded_csvs, :my_object, :my_table, :sql_db
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'invoices.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
     @loaded_csvs = Loader.new.load_csv(path)
-    @records = build_from(loaded_csvs)
+    @my_object = Invoice
+    @my_table = 'invoices'
+    @sql_db = args.fetch(:sql_db, nil)
+    @records = table_make
+    binding.pry
   end
 
   def create_record(record)
-    Invoice.new(record)
+    Invoice.new(record, self)
   end
 
   def create_table
@@ -32,8 +36,8 @@ class InvoiceRepository < Repository
                         (id, customer_id, merchant_id, status, created_at, updated_at)
                          VALUES (#{row[:id]}, #{row[:customer_id]},
                          #{row[:merchant_id]}, '#{row[:status]}',
-                         #{row[:created_at].to_date},
-                         #{row[:updated_at].to_date});"
+                         #{row[:created_at].to_s},
+                         #{row[:updated_at].to_s});"
       end
   end
 

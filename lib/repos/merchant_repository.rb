@@ -7,7 +7,7 @@ class MerchantRepository < Repository
   attr_accessor :all_paid_invoices, :all_unpaid_invoices,
     :cached_dates_by_revenue, :cached_invoices, :cached_items,
     :cached_dates_with_sales
-  attr_reader :loaded_csvs
+  attr_reader :loaded_csvs, :my_table, :my_object, :sql_db
 
   SQLTable = 'merchants'
 
@@ -16,7 +16,10 @@ class MerchantRepository < Repository
     filename = args.fetch(:filename, 'merchants.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
     @loaded_csvs = Loader.new.load_csv(path)
-    @records = build_from(loaded_csvs)
+    @my_object = Merchant
+    @my_table = 'merchants'
+    @sql_db = args.fetch(:sql_db, nil)
+    @records = table_make
   end
 
   def create_record(record)
@@ -37,11 +40,13 @@ class MerchantRepository < Repository
                          #{row[:updated_at].to_date});"
       end
   end
-
-  # def all
-  #   all_data = sql_db.execute "SELECT * FROM #{SQLTable}"
-  #   all_data.map do |row|
-  #     Merchant.new()
+  #
+  # def transactions
+  #   create_table
+  #   populate_table
+  #   data = sql_db.execute "select * from transactions"
+  #   data.map do |row|
+  #     Transaction.new(row, self)
   #   end
   # end
 

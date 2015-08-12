@@ -9,13 +9,13 @@ class Customer
     :cached_paid_invoice_items
   attr_reader :id, :repository
 
-  def initialize(record)
-    @id          = record[:id]
-    @first_name  = record[:first_name]
-    @last_name   = record[:last_name]
-    @created_at  = record[:created_at]
-    @updated_at  = record[:updated_at]
-    @repository  = record.fetch(:repository, nil)
+  def initialize(record, repository)
+    @id          = record['id']
+    @first_name  = record['first_name']
+    @last_name   = record['last_name']
+    @created_at  = record['created_at']
+    @updated_at  = record['updated_at']
+    @repository  = repository
   end
 
   def invoices

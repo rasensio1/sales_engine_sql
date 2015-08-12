@@ -4,19 +4,22 @@ require_relative '../objects/invoice_item.rb'
 require_relative './repository'
 
 class InvoiceItemRepository < Repository
-  attr_reader :loaded_csvs
+  attr_reader :loaded_csvs, :my_object, :my_table, :sql_db
+
 
   def initialize(args)
     super
     filename = args.fetch(:filename, 'invoice_items.csv')
     path = args.fetch(:path, './data/fixtures/') + filename
     @loaded_csvs = Loader.new.load_csv(path)
-    @records = build_from(loaded_csvs)
+    @my_object = InvoiceItem
+    @my_table = 'invoice_items'
     @sql_db = args.fetch(:sql_db, nil)
+    @records = table_make
   end
 
   def create_record(record)
-    record[:unit_price] = BigDecimal.new(record[:unit_price]) / 100
+    record['unit_price'] = BigDecimal.new(record['unit_price']) / 100
     InvoiceItem.new(record)
   end
 
@@ -37,6 +40,15 @@ class InvoiceItemRepository < Repository
                          #{row[:updated_at].to_date});"
       end
   end
+  #
+  # def transactions
+  #   create_table
+  #   populate_table
+  #   data = sql_db.execute "select * from transactions"
+  #   data.map do |row|
+  #     Transaction.new(row, self)
+  #   end
+  # end
 
   def paid_invoice_items
     args = {:repo => :invoice_repository, :use => :paid_invoices}
