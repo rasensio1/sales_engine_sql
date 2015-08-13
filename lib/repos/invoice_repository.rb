@@ -17,7 +17,6 @@ class InvoiceRepository < Repository
     @my_table = 'invoices'
     @sql_db = args.fetch(:sql_db, nil)
     @records = table_make
-    binding.pry
   end
 
   def create_record(record)
@@ -36,8 +35,8 @@ class InvoiceRepository < Repository
                         (id, customer_id, merchant_id, status, created_at, updated_at)
                          VALUES (#{row[:id]}, #{row[:customer_id]},
                          #{row[:merchant_id]}, '#{row[:status]}',
-                         #{row[:created_at].to_s},
-                         #{row[:updated_at].to_s});"
+                         #{row[:created_at].to_date},
+                         #{row[:updated_at].to_date});"
       end
   end
 
