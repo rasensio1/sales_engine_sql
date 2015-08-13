@@ -18,6 +18,7 @@ class Merchant
 
   def items
     
+
     # cached_items ||= repository.get(:items, id, :merchant_id)
     cached_items ||= repository.items_for(self)
   end
