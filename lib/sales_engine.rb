@@ -14,7 +14,7 @@ class SalesEngine
 
   def initialize(path = './data/fixtures/')
     @path = path
-    @sql_db ||= SQLite3::Database.new ':memory:'
+    $sql_db ||= SQLite3::Database.new ':memory:'
     @sql_db.results_as_hash = true
     @args = {:path => path, :engine => self, :sql_db => @sql_db}
   end
