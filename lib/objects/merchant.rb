@@ -49,7 +49,6 @@ class Merchant
       paid_invoices
     else
       paid_invoices.select do |invoice|
-        binding.pry
         invoice.created_at.to_date == date.to_date
       end
     end
